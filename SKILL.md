@@ -41,6 +41,38 @@ Use it with:
 - `repo`: repository name, for example `AtlasDemo`
 - `task`: current task, for example `debug Docker deployment`
 
+## Tool Decision Guide
+
+Use this guide literally. When uncertain, choose the safest read-only tool first.
+
+| Situation | Tool | Rule |
+| --- | --- | --- |
+| Starting or resuming non-trivial coding work in a repository | `atlas_engineering_context` | Use this first before editing files. It returns repo facts, architecture decisions, known failures, checkpoints, proposals, claim warnings, and suggested checks. |
+| You only need the user's general working preferences or collaboration frame | `atlas_context` | Use this for collaboration style and task posture, not repo-specific engineering facts. |
+| You need a specific past fix, command, decision, incident, or failure mode | `atlas_engineering_recall` | Use this after `atlas_engineering_context` when the context pack is not specific enough. |
+| You changed code, config, docs, packaging, deployment, or tests in a meaningful way | `atlas_engineering_autocheckpoint` | Use this after verification. Include repo root, summary, tests, failures, and next step. |
+| You need to leave a manual handoff without reading Git state | `atlas_engineering_checkpoint` | Use this when auto-checkpoint is not possible or when the handoff is conceptual. |
+| You learned a reusable source-backed fact but are not 100% sure it should become durable memory | `atlas_engineering_propose` | Prefer this over direct memory writes. Proposals can be reviewed later. |
+| The user explicitly asks to store a confirmed engineering memory | `atlas_engineering_remember` | Use direct writes only when the user asked or the fact is clearly source-backed and stable. |
+| You want to know whether a candidate memory is safe to store | `atlas_engineering_why_not_remember` | Use before storing ambiguous, broad, risky, personal, or weakly supported claims. |
+| Retrieved memory seems surprising, stale, or too influential | `atlas_engineering_why_recall` | Use before trusting the memory. Source code still wins. |
+| The user asks to review pending memory proposals | `atlas_engineering_review_proposals` | Use this before approving or rejecting anything. |
+| The user asks to approve a specific proposal | `atlas_engineering_approve_proposal` | Mutating tool. Use only with explicit user intent or clear operator workflow. |
+| The user asks to reject a specific proposal | `atlas_engineering_reject_proposal` | Mutating tool. Use only with explicit user intent or clear operator workflow. |
+| You need to inspect existing memory rows | `atlas_engineering_memories` | Read-only. Useful for audits and debugging recall. |
+| You need memory health counters | `atlas_engineering_health` | Read-only. Use when diagnosing memory quality or drift. |
+| You need recent writes, checkpoints, claims, proposals, contradictions, and hygiene runs together | `atlas_engineering_receipt` | Read-only. Use after memory-heavy work or before handoff. |
+| You need to inspect claim ledger entries | `atlas_engineering_claims` | Read-only. Use when checking which memories influenced decisions. |
+| You need to record that a memory influenced a decision | `atlas_engineering_claim` | Mutating tool. Use for audit trails when a memory materially shaped work. |
+| You need to validate claim ledger entries | `atlas_engineering_validate_claims` | Defaults to dry-run. Pass apply only when the user asks or the workflow requires mutation. |
+| You need to inspect contradiction cases | `atlas_engineering_contradictions` | Read-only. Use when source and memory disagree. |
+| You need to open a contradiction case | `atlas_engineering_contradict` | Mutating tool. Use when a stored memory conflicts with current source/runtime evidence. |
+| You need to resolve a contradiction case | `atlas_engineering_resolve_contradiction` | Mutating tool. Use only with explicit decision/evidence. |
+| You need lifecycle cleanup suggestions | `atlas_engineering_hygiene` | Defaults to dry-run. Do not apply destructive hygiene unless asked. |
+| You need to delete, quarantine, promote, downgrade, or curate memory | `atlas_engineering_forget`, `atlas_engineering_quarantine`, `atlas_engineering_promote`, `atlas_engineering_downgrade`, `atlas_engineering_curate` | Mutating governance tools. Use only when the user asks or during an explicit memory maintenance task. |
+
+Do not use CLI commands when the equivalent MCP tool is available. MCP is the agent interface. CLI is a fallback for humans, scripts, CI, or cases where MCP is unavailable.
+
 Useful MCP tools:
 
 - `atlas_context` - collaboration continuity frame
@@ -60,6 +92,20 @@ Useful MCP tools:
 - `atlas_engineering_health` - inspect memory health
 
 Treat mutating tools as explicit operator actions. Do not approve, reject, forget, quarantine, or promote memories unless the user asked for that operation or the task clearly requires it.
+
+## Golden Path For Coding Agents
+
+For ordinary coding work, follow this sequence:
+
+1. Call `atlas_engineering_context` with the repository name and the current task.
+2. Inspect local Git state and source files.
+3. Use `atlas_engineering_recall` only if you need more specific prior context.
+4. Make the change.
+5. Run the narrowest relevant verification.
+6. Call `atlas_engineering_autocheckpoint` after meaningful verified work.
+7. Use `atlas_engineering_propose` for any reusable source-backed lesson learned.
+
+Never treat Atlas memory as proof. If Atlas memory and source code disagree, trust source code and consider opening a contradiction case.
 
 ## CLI Fallback
 
