@@ -4,7 +4,7 @@ services:
     container_name: atlas-demo-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-atlascursedlab}
+      POSTGRES_DB: ${POSTGRES_DB:-atlasdemo}
       POSTGRES_USER: ${POSTGRES_USER:-atlas}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-atlas}
     ports:
@@ -29,11 +29,11 @@ services:
         condition: service_healthy
     environment:
       ASPNETCORE_URLS: http://0.0.0.0:5391
-      ATLAS_POSTGRES_CONNECTION: Host=atlas-postgres;Port=5432;Database=${POSTGRES_DB:-atlascursedlab};Username=${POSTGRES_USER:-atlas};Password=${POSTGRES_PASSWORD:-atlas}
+      ATLAS_POSTGRES_CONNECTION: Host=atlas-postgres;Port=5432;Database=${POSTGRES_DB:-atlasdemo};Username=${POSTGRES_USER:-atlas};Password=${POSTGRES_PASSWORD:-atlas}
       Database__Provider: postgres
       Database__Host: atlas-postgres
       Database__Port: 5432
-      Database__Database: ${POSTGRES_DB:-atlascursedlab}
+      Database__Database: ${POSTGRES_DB:-atlasdemo}
       Database__Username: ${POSTGRES_USER:-atlas}
       Database__Password: ${POSTGRES_PASSWORD:-atlas}
       Embeddings__Enabled: ${ATLAS_EMBEDDINGS_ENABLED:-false}
