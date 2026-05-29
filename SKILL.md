@@ -172,7 +172,7 @@ Use `ATLAS_USERNAME` for local/demo provenance when running CLI or server-side j
 export ATLAS_USERNAME="<your-name-or-agent-name>"
 ```
 
-This provenance value is not authentication. Treat the first team package as trusted-network software unless it is placed behind an authenticated reverse proxy.
+MCP tools also accept optional `atlas_username` for per-call audit provenance. Authenticated reverse proxies can provide the actor through `X-Atlas-Username`, `X-Forwarded-User`, `X-Remote-User`, or equivalent user headers. This provenance value is not authentication. Treat the first team package as trusted-network software unless it is placed behind an authenticated reverse proxy.
 
 ## Memory Rules
 

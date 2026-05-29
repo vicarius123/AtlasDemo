@@ -566,6 +566,7 @@
       },
       "Atlas.Engineering.Infrastructure/1.0.0": {
         "dependencies": {
+          "Atlas.Core": "1.0.0",
           "Atlas.Engineering.Core": "1.0.0",
           "Microsoft.EntityFrameworkCore": "10.0.0",
           "Microsoft.EntityFrameworkCore.Sqlite": "10.0.0",

@@ -242,7 +242,7 @@ For local CLI provenance, set:
 export ATLAS_USERNAME="<your-name-or-agent-name>"
 ```
 
-The first team version uses `ATLAS_USERNAME` as provenance. It is not authentication. Put the service behind trusted network controls or a reverse proxy before exposing it outside a private network.
+Atlas stores this actor value on memory and audit rows. MCP clients can also pass `atlas_username` in tool arguments or `_meta`; reverse proxies may provide `X-Atlas-Username`, `X-Forwarded-User`, or equivalent authenticated-user headers. This provenance is not authentication. Put the service behind trusted network controls or a reverse proxy before exposing it outside a private network.
 
 ## Configure Codex
 
