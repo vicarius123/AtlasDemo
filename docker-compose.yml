@@ -1,0 +1,52 @@
+services:
+  atlas-postgres:
+    image: pgvector/pgvector:pg17
+    container_name: atlas-demo-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-atlascursedlab}
+      POSTGRES_USER: ${POSTGRES_USER:-atlas}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-atlas}
+    ports:
+      - "${ATLAS_POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - atlas-demo-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  atlas-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: atlas-demo:1.0.0
+    container_name: atlas-demo-mcp
+    restart: unless-stopped
+    depends_on:
+      atlas-postgres:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_URLS: http://0.0.0.0:5391
+      ATLAS_POSTGRES_CONNECTION: Host=atlas-postgres;Port=5432;Database=${POSTGRES_DB:-atlascursedlab};Username=${POSTGRES_USER:-atlas};Password=${POSTGRES_PASSWORD:-atlas}
+      Database__Provider: postgres
+      Database__Host: atlas-postgres
+      Database__Port: 5432
+      Database__Database: ${POSTGRES_DB:-atlascursedlab}
+      Database__Username: ${POSTGRES_USER:-atlas}
+      Database__Password: ${POSTGRES_PASSWORD:-atlas}
+      Embeddings__Enabled: ${ATLAS_EMBEDDINGS_ENABLED:-false}
+      Pipeline__Enabled: ${ATLAS_PIPELINE_ENABLED:-false}
+      MemoryAutomation__Enabled: ${ATLAS_MEMORY_AUTOMATION_ENABLED:-true}
+    ports:
+      - "${ATLAS_MCP_PORT:-5391}:5391"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:5391/health >/dev/null || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+
+volumes:
+  atlas-demo-postgres-data:
