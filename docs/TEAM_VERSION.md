@@ -16,7 +16,7 @@ The product should support:
 - team and project isolation
 - audit trails for memory mutations
 - review workflows for proposed memories
-- read-only and administrative cockpit views
+- read-only and administrative console views
 - safe source-free deployment
 
 The goal is not to replace Git, issue trackers, observability tools, documentation, or CI. Atlas should provide governed continuity around those systems and help coding agents start with the right context.
@@ -24,7 +24,7 @@ The goal is not to replace Git, issue trackers, observability tools, documentati
 ## Target Architecture
 
 ```text
-Codex / IDE / CLI / Cockpit
+Codex / IDE / CLI / Console
           |
           v
 Central Atlas Server
@@ -37,11 +37,11 @@ The central server owns all database access. Clients call Atlas over HTTP, MCP, 
 
 ### Components
 
-- Atlas Server: hosts MCP endpoints, HTTP APIs, authentication, authorization, audit logging, and cockpit endpoints.
+- Atlas Server: hosts MCP endpoints, HTTP APIs, authentication, authorization, audit logging, and console endpoints.
 - Postgres: stores engineering memory, checkpoints, proposals, claim ledger rows, contradictions, users, teams, roles, and audit events.
 - pgvector: stores embeddings for semantic recall when enabled.
 - Atlas CLI: supports both local database mode and remote server mode.
-- Atlas Cockpit: provides read-only operator views and administrative review flows.
+- Atlas Console: provides read-only operator views and administrative review flows.
 - Codex MCP Integration: connects coding agents to the central Atlas server.
 
 ## Client Modes
@@ -61,7 +61,7 @@ In this mode, the CLI or MCP server uses `ATLAS_POSTGRES_CONNECTION` directly.
 Remote mode is the preferred team architecture.
 
 ```text
-Atlas CLI / Codex / Cockpit -> Atlas Server -> Postgres
+Atlas CLI / Codex / Console -> Atlas Server -> Postgres
 ```
 
 In this mode, clients use:
@@ -155,7 +155,7 @@ Recommended first roles:
 - Admin: manage teams, users, tokens, projects, and server settings.
 - Maintainer: approve memories, resolve contradictions, run hygiene, manage repository settings.
 - Contributor: read context, propose memories, create checkpoints.
-- Reader: read context and cockpit views only.
+- Reader: read context and console views only.
 - Agent: scoped automation identity with narrowly configured permissions.
 
 ## Permission Model
@@ -252,22 +252,34 @@ Each event should include:
 - source IP or client id when available
 - before and after summary for mutating operations
 
-## Cockpit Requirements
+## Console Requirements
 
-The cockpit should remain safe by default.
+The console should remain safe by default.
 
-Recommended initial cockpit sections:
+Implemented read-only console sections:
 
 - service health
-- organization and team scope selector
-- repository context pack preview
+- repository selector populated from known Atlas repositories
+- task examples for context-pack generation
+- repository context pack preview and build action
 - memory health
+- recent memory rows with owner, kind, trust state, claim kind, confidence, and timestamp
 - recent checkpoints
 - proposal queue
+- hygiene runs
 - contradiction cases
 - claim ledger
+- queue and pipeline status
+
+Recommended administrative extensions:
+
+- organization and team scope selector
 - audit events
 - token and integration status
+- proposal approval and rejection controls
+- contradiction resolution controls
+- memory quarantine, promotion, downgrade, and forget controls
+- hygiene dry-run and apply controls
 
 Mutation controls should require authenticated sessions and role checks. Dangerous operations should use explicit confirmation and should be visible in audit logs.
 
@@ -292,6 +304,15 @@ The demo Compose file can remain simple. The team Compose file should separate:
 - server configuration
 - token or OIDC settings
 - optional embedding configuration
+
+The source-free package includes a practical first team stack:
+
+- `docker-compose.team.yml`
+- `.env.team.example`
+- `scripts/deploy-team.sh`
+- `scripts/stop-team.sh`
+
+This stack exposes only Atlas HTTP/MCP/console and keeps Postgres private to Docker. It uses `ATLAS_USERNAME` for local/demo provenance only. Authentication, scoped API tokens, and RBAC remain future hardening work.
 
 ## Security And Privacy
 
@@ -325,7 +346,7 @@ The local demo can evolve into the team version in stages:
 2. Add a remote server API over the existing service layer.
 3. Teach the CLI to select local or remote mode.
 4. Add users, roles, tokens, and audit events.
-5. Move cockpit mutation operations behind authentication.
+5. Move console mutation operations behind authentication.
 6. Add team and repository scoping.
 7. Harden deployment and package the team Compose stack.
 
@@ -351,9 +372,9 @@ This avoids a rewrite. The current memory, proposal, checkpoint, hygiene, and co
 - Add audit events for all mutating operations.
 - Add token creation and revocation.
 
-### Milestone 4: Cockpit For Teams
+### Milestone 4: Console For Teams
 
-- Add authenticated cockpit sessions.
+- Add authenticated console sessions.
 - Add scope selector.
 - Add proposal review, contradiction review, claim ledger, and audit views.
 - Keep destructive operations explicit and logged.
@@ -364,7 +385,7 @@ This avoids a rewrite. The current memory, proposal, checkpoint, hygiene, and co
 - Add production configuration examples.
 - Add backup and restore documentation.
 - Add source-free packaging checks.
-- Add smoke tests for server, CLI, MCP, cockpit, and database connectivity.
+- Add smoke tests for server, CLI, MCP, console, and database connectivity.
 
 ## Non-Goals For The First Team Version
 

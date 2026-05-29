@@ -112,7 +112,7 @@ Atlas exposes the same core functionality through:
 
 - an MCP server for Codex and other compatible clients
 - a command-line interface for terminal workflows
-- a read-only local cockpit for operators
+- a read-only local console for operators
 
 ## Product Boundary
 
@@ -140,9 +140,12 @@ Atlas memory should be treated as guidance. Source code, Git state, tests, logs,
 - `artifacts/Atlas.McpServer/` - compiled Atlas MCP server
 - `artifacts/Atlas.Cli/` - compiled Atlas CLI
 - `docker-compose.yml` - local Postgres and Atlas MCP stack
+- `docker-compose.team.yml` - centralized team stack with private Postgres and shared MCP/console port
 - `Dockerfile` - runtime-only image using compiled artifacts
 - `scripts/deploy-demo.sh` - Docker deployment helper
+- `scripts/deploy-team.sh` - centralized team deployment helper
 - `scripts/stop-demo.sh` - Docker stop helper
+- `scripts/stop-team.sh` - team stack stop helper
 - `scripts/smoke-demo.sh` - runtime smoke test
 - `scripts/install-codex-atlas-mcp.sh` - Codex MCP config helper
 - `scripts/run-local-mcp.sh` - local binary runner
@@ -205,6 +208,42 @@ Remove containers and the database volume:
 scripts/stop-demo.sh -v
 ```
 
+## Centralized Team Server
+
+For a shared team server, use the team Compose file. It keeps Postgres private to Docker and exposes only the Atlas HTTP/MCP/console port.
+
+```bash
+cp .env.team.example .env.team
+```
+
+Edit `.env.team` and set a real `POSTGRES_PASSWORD`.
+
+Deploy:
+
+```bash
+scripts/deploy-team.sh
+```
+
+Atlas will be available to the team at:
+
+- `http://<host>:5391/health`
+- `http://<host>:5391/cockpit`
+- `http://<host>:5391/mcp`
+
+Configure each Codex client to use the shared server:
+
+```bash
+ATLAS_MCP_URL="http://<host>:5391/mcp" scripts/install-codex-atlas-mcp.sh
+```
+
+For local CLI provenance, set:
+
+```bash
+export ATLAS_USERNAME="<your-name-or-agent-name>"
+```
+
+The first team version uses `ATLAS_USERNAME` as provenance. It is not authentication. Put the service behind trusted network controls or a reverse proxy before exposing it outside a private network.
+
 ## Configure Codex
 
 After the MCP server is running:
@@ -223,7 +262,7 @@ Useful first calls from Codex:
 - `atlas_engineering_propose`
 - `atlas_engineering_autocheckpoint`
 
-## Local Cockpit
+## Local Console
 
 Open:
 
@@ -231,13 +270,17 @@ Open:
 http://127.0.0.1:5391/cockpit
 ```
 
-The cockpit is read-only. It shows:
+The console is read-only. It shows:
 
 - service status
+- repository selector for known Atlas repositories
 - repository summary
+- task examples for context-pack generation
 - memory health
+- recent memory rows with user, kind, trust, claim, confidence, and timestamp
 - recent checkpoints
 - memory proposals
+- hygiene runs
 - contradiction cases
 - claim ledger rows
 - pipeline status
@@ -306,8 +349,11 @@ Docker defaults are intentionally local and demo-safe:
 - password: `atlas`
 - MCP port: `5391`
 - Postgres port: `5432`
+- provenance username: `ATLAS_USERNAME`
 
 Change values in `.env` before deployment if needed.
+
+For centralized team deployments, use `.env.team` and `docker-compose.team.yml`. The team stack does not expose Postgres by default; normal users and agents should connect through Atlas MCP/console rather than direct database credentials.
 
 Do not place production secrets, private keys, or API tokens into `.env`.
 

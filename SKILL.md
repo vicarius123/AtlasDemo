@@ -150,13 +150,29 @@ Health:
 http://127.0.0.1:5391/health
 ```
 
-Read-only cockpit:
+Read-only console:
 
 ```text
 http://127.0.0.1:5391/cockpit
 ```
 
-The cockpit can be used to inspect memory health, checkpoints, proposals, contradictions, claims, queue state, and generated context packs.
+The console can be used to select known repositories, start from task examples, inspect recent memory rows, memory health, checkpoints, proposals, hygiene runs, contradictions, claims, queue state, and generated context packs.
+
+## Team Server Mode
+
+For a centralized team host, configure Codex clients against the shared MCP endpoint instead of direct Postgres:
+
+```bash
+ATLAS_MCP_URL="http://<host>:5391/mcp" scripts/install-codex-atlas-mcp.sh
+```
+
+Use `ATLAS_USERNAME` for local/demo provenance when running CLI or server-side jobs:
+
+```bash
+export ATLAS_USERNAME="<your-name-or-agent-name>"
+```
+
+This provenance value is not authentication. Treat the first team package as trusted-network software unless it is placed behind an authenticated reverse proxy.
 
 ## Memory Rules
 

@@ -8,6 +8,7 @@ ENV_EXAMPLE="${ROOT_DIR}/.env.example"
 MCP_PORT="${ATLAS_MCP_PORT:-5391}"
 HEALTH_URL="${ATLAS_HEALTH_URL:-http://127.0.0.1:${MCP_PORT}/health}"
 VERSION_URL="${ATLAS_VERSION_URL:-http://127.0.0.1:${MCP_PORT}/version}"
+BUILD_TIMEOUT_SECONDS="${ATLAS_COMPOSE_BUILD_TIMEOUT_SECONDS:-900}"
 
 cd "${ROOT_DIR}"
 
@@ -21,7 +22,13 @@ if [ ! -f "${ENV_FILE}" ]; then
   printf 'Created %s from .env.example\n' "${ENV_FILE}"
 fi
 
-docker compose up -d --build
+if command -v timeout >/dev/null 2>&1; then
+  timeout "${BUILD_TIMEOUT_SECONDS}" docker compose build --progress=plain
+else
+  docker compose build --progress=plain
+fi
+
+docker compose up -d
 
 printf 'Waiting for Atlas health at %s\n' "${HEALTH_URL}"
 for _ in $(seq 1 60); do

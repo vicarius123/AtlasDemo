@@ -30,7 +30,7 @@ The default local MCP URL is:
 http://127.0.0.1:5391/mcp
 ```
 
-The local cockpit URL is:
+The local console URL is:
 
 ```text
 http://127.0.0.1:5391/cockpit
