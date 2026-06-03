@@ -1,0 +1,13 @@
+interface:
+  display_name: "Atlas"
+  short_description: "Engineering continuity and repo context"
+  default_prompt: "Use $atlas to fetch repo context, inspect project maps, and leave a checkpoint after verified work."
+dependencies:
+  tools:
+    - type: "mcp"
+      value: "atlas"
+      description: "Centralized Atlas MCP server"
+      transport: "streamable_http"
+      url: "http://<atlas-host>:5391/mcp"
+policy:
+  allow_implicit_invocation: true

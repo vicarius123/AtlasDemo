@@ -182,7 +182,7 @@ The CLI should keep the same user experience while switching transport based on 
 Local database mode:
 
 ```bash
-atlas context-pack --repo AtlasDemo --task "review deployment"
+atlas context-pack --repo atlasdemo --task "review deployment"
 ```
 
 Remote server mode:
@@ -191,7 +191,7 @@ Remote server mode:
 atlas context-pack \
   --server https://atlas.example.internal \
   --workspace platform \
-  --repo AtlasDemo \
+  --repo atlasdemo \
   --task "review deployment"
 ```
 
@@ -201,7 +201,7 @@ Environment variables:
 ATLAS_SERVER_URL=https://atlas.example.internal
 ATLAS_API_TOKEN=...
 ATLAS_WORKSPACE=platform
-ATLAS_REPO=AtlasDemo
+ATLAS_REPO=atlasdemo
 ```
 
 The CLI should never require direct database credentials in remote team mode.

@@ -1,0 +1,55 @@
+FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
+
+WORKDIR /app
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends curl git python3 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN mkdir -p /root/.atlas-engineering-memory/git-cache \
+    && cat > /usr/local/bin/git-credential-atlas-store <<'EOF'
+#!/usr/bin/env python3
+import sys
+from pathlib import Path
+from urllib.parse import urlparse, unquote
+
+operation = sys.argv[1] if len(sys.argv) > 1 else ""
+if operation != "get":
+    sys.exit(0)
+
+request = {}
+for line in sys.stdin:
+    line = line.rstrip("\n")
+    if not line or "=" not in line:
+        continue
+    key, value = line.split("=", 1)
+    request[key] = value
+
+target_host = request.get("host")
+credentials_path = Path("/root/.git-credentials")
+if not target_host or not credentials_path.exists():
+    sys.exit(0)
+
+for raw in credentials_path.read_text().splitlines():
+    raw = raw.strip()
+    if not raw:
+        continue
+    parsed = urlparse(raw)
+    if parsed.hostname != target_host:
+        continue
+    if parsed.username:
+        print(f"username={unquote(parsed.username)}")
+    if parsed.password:
+        print(f"password={unquote(parsed.password)}")
+    sys.exit(0)
+EOF
+RUN chmod +x /usr/local/bin/git-credential-atlas-store \
+    && git config --global credential.helper /usr/local/bin/git-credential-atlas-store
+
+ENV ASPNETCORE_URLS=http://0.0.0.0:5391
+ENV DOTNET_EnableDiagnostics=0
+
+COPY artifacts/Atlas.McpServer/ ./
+
+EXPOSE 5391
+ENTRYPOINT ["dotnet", "Atlas.McpServer.dll"]

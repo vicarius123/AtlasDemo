@@ -1,0 +1,50 @@
+services:
+  atlas-embeddings:
+    build:
+      context: .
+      dockerfile: Dockerfile.embeddings
+    container_name: atlas-demo-embeddings
+    restart: unless-stopped
+    entrypoint:
+      - /atlas-embedding-venv/bin/python
+      - /embedding-scripts/embedding_server.py
+      - --model-path
+      - /models/Qwen3-Embedding-0.6B
+      - --host
+      - 0.0.0.0
+      - --port
+      - "5392"
+    volumes:
+      - ${ATLAS_EMBEDDING_VENV_HOST_PATH:?set ATLAS_EMBEDDING_VENV_HOST_PATH}:/atlas-embedding-venv:ro
+      - ${ATLAS_EMBEDDING_MODEL_HOST_PATH:?set ATLAS_EMBEDDING_MODEL_HOST_PATH}:/models/Qwen3-Embedding-0.6B:ro
+      - ${ATLAS_EMBEDDING_SCRIPTS_HOST_PATH:?set ATLAS_EMBEDDING_SCRIPTS_HOST_PATH}:/embedding-scripts:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:5392/health >/dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  atlas-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile.embeddings
+    depends_on:
+      atlas-embeddings:
+        condition: service_healthy
+    environment:
+      ATLAS_EMBEDDINGS_ENABLED: "true"
+      Embeddings__Enabled: "true"
+      Embeddings__ServiceUrl: http://atlas-embeddings:5392
+      Embeddings__ModelPath: /models/Qwen3-Embedding-0.6B
+      Embeddings__PythonPath: /atlas-embedding-venv/bin/python
+      Embeddings__ScriptPath: /embedding-scripts/embed_texts_http_client.py
+      ATLAS_EMBEDDING_SERVICE_URL: http://atlas-embeddings:5392
+      ATLAS_EMBEDDING_SERVER_URL: http://atlas-embeddings:5392/embed
+      ATLAS_EMBEDDING_MODEL_PATH: /models/Qwen3-Embedding-0.6B
+      ATLAS_EMBEDDING_PYTHON_PATH: /atlas-embedding-venv/bin/python
+      ATLAS_EMBEDDING_SCRIPT_PATH: /embedding-scripts/embed_texts_http_client.py
+    volumes:
+      - ${ATLAS_EMBEDDING_VENV_HOST_PATH:?set ATLAS_EMBEDDING_VENV_HOST_PATH}:/atlas-embedding-venv:ro
+      - ${ATLAS_EMBEDDING_MODEL_HOST_PATH:?set ATLAS_EMBEDDING_MODEL_HOST_PATH}:/models/Qwen3-Embedding-0.6B:ro
+      - ${ATLAS_EMBEDDING_SCRIPTS_HOST_PATH:?set ATLAS_EMBEDDING_SCRIPTS_HOST_PATH}:/embedding-scripts:ro
+      - ${ATLAS_GIT_CREDENTIALS_HOST_PATH:?set ATLAS_GIT_CREDENTIALS_HOST_PATH}:/root/.git-credentials:ro
